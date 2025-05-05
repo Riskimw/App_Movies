@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'movie.dart';
-import 'video_detail.dart'; // Halaman detail
+import 'video_detail.dart';
 
 class HalamanVideo extends StatefulWidget {
   const HalamanVideo({super.key});
@@ -34,62 +34,106 @@ class _HalamanVideoState extends State<HalamanVideo> {
 
   @override
   Widget build(BuildContext context) {
-    final String baseUrl = 'http://192.168.1.3:8000/storage/';
+    const String baseUrl = 'http://192.168.1.3:8000/storage/';
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color.fromARGB(255, 165, 165, 165),
+        backgroundColor: Colors.black87,
+        actions: [
+          Icon(Icons.search, color: Color.fromARGB(255, 255, 255, 255)),
+        ],
         title: const Text(
-          'Filmku',
-          style: TextStyle(
-            color: Color.fromARGB(255, 255, 0, 149),
-            fontWeight: FontWeight.bold,
-          ),
+          'MovieVel',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
+        centerTitle: true,
       ),
-      body: FutureBuilder<List<Film>>(
-        future: _filmList,
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            final films = snapshot.data!;
-            return GridView.builder(
-              padding: const EdgeInsets.all(8),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 3 / 2,
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 8,
+      body: Padding(
+        padding: EdgeInsets.all(5),
+        child: Column(
+          children: [
+            // Banner di atas
+            Container(
+              width: double.infinity,
+              height: 200,
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage('assets/images/banner.jpeg'),
+                  fit: BoxFit.cover,
+                ),
+                borderRadius: BorderRadius.circular(10),
               ),
-              itemCount: films.length,
-              itemBuilder: (context, index) {
-                final film = films[index];
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => VideoDetailPage(film: film),
+            ),
+
+            // Grid
+            SizedBox(height: 20),
+            Expanded(
+              child: FutureBuilder<List<Film>>(
+                future: _filmList,
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    final films = snapshot.data!;
+                    return Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: GridView.builder(
+                        itemCount: films.length,
+                        //settingan posisi gambar film
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              mainAxisSpacing: 12,
+                              crossAxisSpacing: 12,
+                              childAspectRatio: 3 / 4.2,
+                            ),
+                        itemBuilder: (context, index) {
+                          final film = films[index];
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => VideoDetailPage(film: film),
+                                ),
+                              );
+                            },
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Gambar film
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Image.network(
+                                    '$baseUrl${film.foto}',
+                                    height: 140,
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                // Judul film
+                                Text(
+                                  film.namaFilm,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          );
+                        },
                       ),
                     );
-                    //  print(film.foto);
-                  },
-                  child: GridTile(
-                    child: Container(
-                      color: Colors.black12,
-                      child: Image.network('$baseUrl${film.foto}'),
-                    ),
-                    footer: GridTileBar(
-                      backgroundColor: Colors.black54,
-                      title: Text(film.namaFilm),
-                    ),
-                  ),
-                );
-              },
-            );
-          } else if (snapshot.hasError) {
-            return const Center(child: Text("Gagal memuat video"));
-          }
-          return const Center(child: CircularProgressIndicator());
-        },
+                  } else if (snapshot.hasError) {
+                    return const Center(child: Text("Gagal memuat video"));
+                  }
+                  return const Center(child: CircularProgressIndicator());
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
